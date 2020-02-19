@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+</head>
+<body>
+    <div>
+        <strong>사용자 등록</strong><hr>
+        <div>
+            <input id="name" placeholder="name"><br>
+            <input id="age" placeholder="age"><br>
+            <input name="married" type="checkbox">결혼 여부<br>
+            <button id="addMember">등록</button>
+            <button id="updateMember">수정</button>
+            <button id="getAllMember">모든 멤버 조회</button>
+            <div id="all_div"></div>
+        </div><br>
+        <strong>댓글 등록</strong><hr>
+        <div>
+            <input id="name_comment" placeholder="name">
+            <input id="comment" placeholder="comments">
+            <button id="addComment">등록</button>
+            <button id="updateComment">수정</button>
+            <button id="getAllComments">모든 댓글 조회</button>
+            <div id="comment_div"></div>
+        </div>
+    </div>
+    <script>
+        function delete_comment(_id){
+            $.post('/comment/delete', {_id}, function(returnData){
+                alert(returnData.message);
+            });
+        }
+        function deleteMember(_id){
+            $.post('/member/delete', {_id}, function(returnData){
+                alert(returnData.message);
+            });
+        }
+        function display_comment(_id, name, comment){
+            $.cookie('_id', _id);
+            console.log($.cookie('_id'));
+            $('#name_comment').val(_id);
+            $('#comment').val(comment);
+        }
+        function display(_id, name, age, married){
+            $.cookie('_id', _id);   //설정 이름, 값 (생성)
+            console.log($.cookie('_id'));       //이름 (조회)
+            $('#name').val(name);
+            $('#age').val(age);
+            if(married !=='false'){
+                $(`input[name='married']`).prop("checked", true);
+            }else{
+                $(`input[name='married']`).prop("checked", false);
+            }
+        }
+        $(document).ready(function(){
+            $('#updateComment').click(function(){
+                const commenter = $('#name_comment').val();
+                const comment = $('#comment').val();
+                const send_param = {
+                    commenter, comment
+                }
+                $.post('/comment/update', send_param, function(returnData){
+                    alert(returnData.message);
+                });
+            });
+            $('#updateMember').click(function(){
+                const _id=$.cookie('_id');
+                const name=$('#name').val();
+                const age=$('#age').val();
+                const married = $(`input[name='married']`).is(":checked");
+                const send_param = {
+                    _id, name, age, married
+                }
+                $.post('/member/update', send_param, function(returnData){
+                    alert(returnData.message);
+                });
+            });
+            $('#addComment').click(function(){
+                const commenter=$('#name_comment').val();
+                const comment=$('#comment').val();
+                const send_param = {
+                    commenter, comment
+                }
+                $.post('/comment/add', send_param, function(returnData){
+                    alert(returnData.message);
+                });
+            });
+            $('#addMember').click(function(){
+                const name=$('#name').val();
+                const age=$('#age').val();
+                const married = $(`input[name='married']`).is(":checked");
+                const send_param = {
+                    name, age, married
+                }
+                $.post('/member/add', send_param, function(returnData){
+                    alert(returnData.message);
+                });
+            });
+            $('#getAllComments').click(function(){
+                $.post('/comment/getAllComments', {}, function(returnData){
+                    console.log(returnData.comments);
+                    let result = '<table border="1"><tr><td>아이디</td><td>작성자</td><td>댓글</td><td>수정</td><td>삭제</td></tr>';
+                    returnData.comments.forEach((e)=>{
+                        result += `<tr><td>${e._id}</td><td>${e.name}</td><td>${e.comment}</td><td><button onclick="display_comment('${e._id}', '${e.name}', '${e.comment}')">수정</button></td><td><button onclick="delete_comment('${e._id}')">삭제</button></td>`;
+                    });
+                    result += `</table>`;
+                    $('#comment_div').html(result);
+                });
+            });
+            $('#getAllMember').click(function(){
+                $.post('/member/getAllMember', {}, function(returnData){
+                    console.log(returnData.users);
+                    let result = '<table border="1"><tr><td>아이디</td><td>이름</td><td>나이</td><td>결혼여부</td><td>삭제여부</td></tr>';
+                    returnData.users.forEach((e) => {
+                        result += `<tr><td onclick="display('${e._id}', '${e.name}', '${e.age}', '${e.married}')">${e._id}</td><td>${e.name}</td><td>${e.age}</td><td>${e.married}</td><td><button onclick="deleteMember('${e._id}')">삭제</button></td></tr>`;
+                    });
+                    result += `</table>`;
+                    $('#all_div').html(result);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
