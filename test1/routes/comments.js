@@ -44,7 +44,9 @@ Router.post('/add', async (req, res)=>{
 });
 Router.post('/getAllComments', async (req, res)=>{
     try{
-        const comments = await Comment.find({});    //{조건} -> 조건이 없을 시 모든 값을 리턴(select all)
+        const comments = await Comment.find({}).populate('commenter', (comments)=>{
+        console.log(comments);
+        });
         res.json({comments});
     }catch(err){
         console.log(err);
